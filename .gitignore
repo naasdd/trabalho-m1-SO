@@ -1,9 +1,6 @@
-# Binarios gerados. O diretorio bin/ fica versionado (com .gitkeep) para que o
-# Makefile possa gravar nele logo apos um clone, sem precisar de mkdir.
-bin/*
-!bin/.gitkeep
-*.o
+# Executaveis e objetos gerados pela compilacao
 *.exe
+*.o
 
 # Editores / SO
 .vscode/

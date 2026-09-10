@@ -1,4 +1,3 @@
-# O projeto e compilado tanto no Linux quanto no Windows: guarda tudo com LF
-# no repositorio para nao quebrar a compilacao no ambiente do professor.
+# Guarda o codigo com LF no repositorio, independente do editor usado.
 * text=auto eol=lf
 *.pdf binary
