@@ -12,6 +12,8 @@
 
 #define MAX_NOME     50   /* tamanho do campo "nome" do registro */
 #define MAX_TEXTO   180   /* tamanho do comando cru / do texto de resposta */
+#define MAX_ERRO    120   /* mensagem de erro de sintaxe; cabe em MAX_TEXTO
+                             junto com o prefixo da resposta */
 #define MAX_CANAL    64   /* tamanho do nome de um canal IPC */
 
 /* Comando enviado pelo cliente, ainda em texto ("INSERT id=7 nome='Joao'"). */
@@ -46,7 +48,7 @@ typedef struct {
     TipoComando tipo;
     int         id;
     char        nome[MAX_NOME];
-    char        erro[MAX_TEXTO]; /* preenchido quando tipo == CMD_INVALIDO */
+    char        erro[MAX_ERRO];  /* preenchido quando tipo == CMD_INVALIDO */
 } Comando;
 
 /*
