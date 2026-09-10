@@ -1,14 +1,18 @@
-# Binários e objetos
-bin/
-build/
+# Binarios gerados. Os diretorios em si ficam versionados (com .gitkeep) para
+# que o Makefile possa gravar neles logo apos um clone, sem precisar de mkdir.
+bin/*
+!bin/.gitkeep
 *.o
 *.exe
 *.out
 
-# Dados gerados em tempo de execução
-log/*.log
-dados/*.csv
-resultados/*.csv
+# Dados e logs gerados em tempo de execucao
+log/*
+!log/.gitkeep
+dados/*
+!dados/.gitkeep
+resultados/*
+!resultados/.gitkeep
 
 # Editores / SO
 .vscode/
