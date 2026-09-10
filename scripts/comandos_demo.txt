@@ -1,0 +1,28 @@
+# Roteiro de demonstracao: exercita as quatro operacoes e os erros tratados.
+# Linhas vazias e linhas iniciadas por # sao ignoradas pelo cliente.
+
+INSERT id=1 nome='Joao'
+INSERT id=2 nome='Maria'
+INSERT id=3 nome='Ana Paula'
+INSERT id=4 nome='Carlos'
+
+# Consulta de um registro existente e de um inexistente
+SELECT nome WHERE id=2
+SELECT nome WHERE id=99
+
+# Alteracao de um campo por id
+UPDATE id=3 nome='Ana Paula Souza'
+SELECT nome WHERE id=3
+
+# Remocao e confirmacao de que o registro sumiu
+DELETE WHERE id=4
+SELECT nome WHERE id=4
+
+# Erros que o servidor deve recusar sem quebrar
+INSERT id=1 nome='Duplicado'
+UPDATE id=77 nome='Inexistente'
+DELETE WHERE id=77
+BUSCAR tudo
+SELECT nome
+
+LISTAR
