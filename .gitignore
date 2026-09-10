@@ -1,0 +1,17 @@
+# Binários e objetos
+bin/
+build/
+*.o
+*.exe
+*.out
+
+# Dados gerados em tempo de execução
+log/*.log
+dados/*.csv
+resultados/*.csv
+
+# Editores / SO
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
