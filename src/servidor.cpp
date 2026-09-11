@@ -93,8 +93,23 @@ void processarPedido(Banco& banco, const proto::Pedido& p) {
 }
 
 int main(int argc, char* argv[]) {
-    int nThreads = (argc >= 2) ? stoi(argv[1]) : 4;
-    if (nThreads < 1) nThreads = 1;
+    // Numero de worker threads: padrao 4 se nao passado.
+    // Usamos stoi dentro de try/catch para nao quebrar caso o
+    // usuario digite algo que nao seja numero (ex: ./servidor abc).
+    int nThreads = 4;
+    if (argc >= 2) {
+        try {
+            nThreads = stoi(argv[1]);
+        } catch (...) {
+            cerr << "[servidor] argumento invalido ('" << argv[1]
+                 << "'); usando 4 threads\n";
+            nThreads = 4;
+        }
+    }
+    if (nThreads < 1) {
+        cerr << "[servidor] numero de threads deve ser >= 1; usando 1\n";
+        nThreads = 1;
+    }
 
     cout << "[servidor] Iniciando com " << nThreads << " worker threads\n";
 
