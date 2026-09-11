@@ -160,6 +160,22 @@ int main(int argc, char* argv[]) {
                 } else {
                     cerr << "[servidor] pedido mal formatado: '"
                          << linha << "'\n";
+
+                    // Boa pratica de IPC: sempre responder, mesmo
+                    // com erro. Sem isso, o cliente ficaria preso
+                    // no timeout de 5s sem saber o que houve.
+                    int pidErr = proto::extrairPid(linha);
+                    if (pidErr > 0) {
+                        string fifoErr = proto::fifoResposta(pidErr);
+                        int fdE = open(fifoErr.c_str(), O_WRONLY);
+                        if (fdE >= 0) {
+                            string resp = proto::montarResposta(
+                                "ERR", 0, "pedido invalido");
+                            ssize_t ignorado = write(fdE, resp.data(), resp.size());
+                            (void)ignorado;
+                            close(fdE);
+                        }
+                    }
                 }
             }
         } else {

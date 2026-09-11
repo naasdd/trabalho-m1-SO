@@ -57,12 +57,33 @@ struct Pedido {
 };
 
 // Converte string da operacao para o enum.
+// Converte a operacao para maiusculas antes de comparar.
+// Assim "select", "Select" e "SELECT" sao aceitos igualmente
+// (robustez: o usuario nao deve decorar maiusculas/minusculas).
 inline Op parseOp(const std::string& s) {
-    if (s == "INSERT") return Op::INSERT;
-    if (s == "SELECT") return Op::SELECT;
-    if (s == "UPDATE") return Op::UPDATE;
-    if (s == "DELETE") return Op::DELETE;
+    std::string mai = s;
+    for (char& c : mai) c = static_cast<char>(toupper(static_cast<unsigned char>(c)));
+    if (mai == "INSERT") return Op::INSERT;
+    if (mai == "SELECT") return Op::SELECT;
+    if (mai == "UPDATE") return Op::UPDATE;
+    if (mai == "DELETE") return Op::DELETE;
     return Op::INVALIDA;
+}
+
+// ------------------------------------------------------------
+// Extrai o PID de uma linha de pedido MESMO MAL FORMATADA.
+// Usado pelo servidor para avisar o cliente (com uma resposta
+// ERR) quando o pedido nao pode ser processado — sem isso, o
+// cliente ficaria esperando ate o timeout.
+// ------------------------------------------------------------
+inline int extrairPid(const std::string& linha) {
+    size_t pos = linha.find('|');
+    std::string primeiro = (pos == std::string::npos) ? linha : linha.substr(0, pos);
+    try {
+        return std::stoi(primeiro);
+    } catch (...) {
+        return -1; // nao da nem pra saber quem mandou
+    }
 }
 
 // ------------------------------------------------------------
