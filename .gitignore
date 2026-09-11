@@ -1,0 +1,14 @@
+# Binarios compilados
+/servidor
+/cliente
+
+# Objetos de compilacao
+src/*.o
+
+# FIFOs residuais (rodados fora do /tmp por engano)
+db_req
+db_resp_*
+
+# Editor
+.vscode/
+.DS_Store
