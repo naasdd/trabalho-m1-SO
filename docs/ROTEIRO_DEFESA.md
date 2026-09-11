@@ -82,6 +82,23 @@ R: Duas threads fazendo INSERT ao mesmo tempo poderiam realocar o vetor
 simultaneamente → crash ou dados corrompidos. Ou um DELETE durante um SELECT
 lendo o registro → iterator inválido.
 
+## 4b. Robustez (tratamento de erros)
+
+**P: O que acontece se eu mandar um pedido inválido (ex: `DROP 5`)?**
+R: O servidor responde `ERR|0|pedido invalido` no FIFO do cliente. Todo pedido
+recebe resposta — se só logássemos o erro, o cliente ficaria preso até o timeout
+de 5s sem saber o que houve. Princípio de IPC: quem envia sempre deve saber o
+destino da mensagem.
+
+**P: E se eu rodar `./servidor abc` ou `./servidor 0`?**
+R: O argumento é validado com try/catch: não-numérico → aviso e usa 4 threads
+(padrao); menor que 1 → aviso e usa 1. O servidor nunca quebra com entrada
+inválida.
+
+**P: Aceita `select` em minúsculo?**
+R: Sim — o parser normaliza a operação para maiúsculas antes de comparar,
+então `select`, `Select` e `SELECT` funcionam igualmente.
+
 ## 5. Resultados (benchmark)
 
 **P: Por que o sequencial (`-n`) não mostra diferença entre 1 e 8 threads?**

@@ -202,6 +202,16 @@ bool Banco::inserir(int id, const string& nome) {
 
 **Explicação:** SELECTs podem executar em paralelo (shared_lock), mas escritas são serializadas (unique_lock), garantindo integridade sem sacrificar desempenho em leituras.
 
+### 4.4 Robustez do Protocolo
+
+O protocolo foi projetado com três cuidados que evitam comportamentos indesejados:
+
+1. **Operações case-insensitive:** o parser normaliza a operação para maiúsculas antes de comparar, aceitando `select`, `Select` ou `SELECT` igualmente — o usuário não precisa decorar convenções de caixa.
+
+2. **Todo pedido recebe resposta:** quando o servidor recebe um pedido mal formatado (ex: operação inexistente), ele envia `ERR|0|pedido invalido` no FIFO privado do cliente, em vez de apenas registrar no log. Sem isso, o cliente permaneceria bloqueado até o timeout de 5 segundos sem saber o que aconteceu — violando o princípio de que, em um protocolo de IPC, quem envia deve sempre receber o destino da mensagem.
+
+3. **Validação de argumentos de inicialização:** o número de threads é validado com tratamento de exceções: um argumento não numérico (ex: `./servidor abc`) acarreta um aviso e o uso do valor padrão (4); valores menores que 1 acarretam aviso e uso de 1 thread. O servidor nunca aborta com entrada inválida.
+
 ---
 
 ## 5. Resultados

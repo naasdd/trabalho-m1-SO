@@ -247,6 +247,11 @@ Exemplos:
 
 **Por que texto?** Porque dá pra testar com `echo "1234|SELECT|5|" > /tmp/db_req` e ler com `cat /tmp/db_resp_1234`. Facilita muito a depuração.
 
+**Detalhes de robustez (implementados):**
+- A operação é **case-insensitive**: `select`, `Select` e `SELECT` são aceitos igualmente (o parser converte pra maiúsculas antes de comparar)
+- **Todo pedido tem resposta.** Se o pedido é mal formatado (ex: `DROP`), o servidor responde `ERR|0|pedido invalido` no FIFO do cliente, em vez de deixar ele esperando até o timeout. Isso é boa prática de IPC: *quem envia sempre precisa saber o destino da mensagem*
+- O número de threads do servidor também é validado: `./servidor abc` avisa e usa 4; `./servidor 0` avisa e usa 1. O programa nunca quebra com entrada inválida
+
 ### 3.5 Banco de Dados (A "tabela")
 
 **Estrutura:**
