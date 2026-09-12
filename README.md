@@ -370,6 +370,17 @@ Escolhas conscientes, não pendências esquecidas:
 - **Sem transações.** Cada comando é atômico em si, mas não há como agrupar
   vários em uma unidade que falhe ou tenha sucesso junto.
 
+## Documentação
+
+Documentos complementares na pasta `docs/`:
+
+| Arquivo | Conteúdo |
+|---|---|
+| `RELATORIO.md` | Relatório do trabalho (formato de artigo; converter em PDF para a entrega) |
+| `GUIA_ESTUDOS.md` | Explicação completa dos conceitos, do zero, para estudo do grupo |
+| `ROTEIRO_DEFESA.md` | Perguntas prováveis da apresentação com respostas prontas |
+| `BENCHMARK.md` + `benchmark.ps1` | Roteiro e script das medições de desempenho (Seção 5 do relatório) |
+
 ## Autores
 
 Trabalho em trio — Sistemas Operacionais, UNIVALI.
