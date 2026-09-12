@@ -389,3 +389,4 @@ Trabalho em trio — Sistemas Operacionais, UNIVALI.
 |---|---|
 | José Gabriel Santos Gomes | [@naasdd](https://github.com/naasdd) |
 | Matheus Pompeo | [@mapompeo](https://github.com/mapompeo) |
+| Nathan Gustavo Padilha Reichert | |

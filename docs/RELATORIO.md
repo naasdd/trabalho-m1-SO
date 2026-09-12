@@ -1,6 +1,6 @@
 # Sistema de Processamento Paralelo de Requisições a um Banco de Dados
 
-**Autores:** [Nome Completo 1], [Nome Completo 2], [Nome Completo 3]
+**Autores:** José Gabriel Santos Gomes, Matheus Pompeo, Nathan Gustavo Padilha Reichert
 **Universidade:** Universidade do Vale do Itajaí (UNIVALI)
 **Disciplina:** Sistemas Operacionais
 **Professor:** [Nome do Professor]
