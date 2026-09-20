@@ -1,6 +1,12 @@
 # Executaveis e objetos gerados pela compilacao
 *.exe
 *.o
+servidor.exe
+cliente.exe
+
+# Arquivos gerados pelo benchmark (lotes de comandos)
+lote_select.txt
+lote_update.txt
 
 # Editores / SO
 .vscode/

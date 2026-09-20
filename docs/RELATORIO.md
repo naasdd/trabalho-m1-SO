@@ -274,85 +274,158 @@ de sair). O `pthread_join` garante que nenhuma thread fica viva após o `main`.
 
 ## 5. Resultados
 
-> **[PREENCHER APÓS O BENCHMARK — ver docs/BENCHMARK.md]**
-
 ### 5.1 Metodologia
 
-Cenário: lote de N requisições idênticas enviado pelo cliente, variando:
+Cenário: lote de **N = 2000** requisições enviado pelo cliente, variando:
 - quantidade de threads do servidor (1, 2, 4, 8);
 - modo do cliente (sequencial vs `--paralelo`);
-- tipo de operação (SELECT — leitura; UPDATE — escrita).
+- tipo de operação (SELECT — só leitura; UPDATE — escrita com regravação de
+  `banco.txt` dentro da seção crítica).
 
-Cada configuração medida X vezes; reporta-se a média. Ambiente: [preencher
-processador, RAM e versão do Windows do desktop usado].
+Lotes: `lote_select.txt` (2000× `SELECT nome WHERE id=<1..3>`) e
+`lote_update.txt` (2000× `UPDATE id=<1..3> nome='bench<N>'`), gerados por
+`docs/benchmark3x.ps1`. Antes de cada medição o `banco.txt` foi restaurado ao
+estado inicial (3 registros) e o servidor foi subido do zero com o número de
+threads da configuração; o tempo medido (`Measure-Command`) cobre somente o
+cliente, do primeiro envio à última resposta. Cada configuração foi medida
+**3 vezes**; reporta-se cada rodada e a média aritmética. Ambiente:
+**AMD Ryzen 3 3300X (4 núcleos / 8 threads lógicos), 16 GB RAM,
+Windows 11 Pro (10.0.26200)**, MinGW-w64 `g++ -O2`. Dados brutos em
+`docs/evidencias/resultados.csv` (matriz 16×3) e logs por configuração em
+`docs/evidencias/servidor_<modo>_<op>_<threads>_r<rodada>.log`.
 
 ### 5.2 Resultados — Modo Paralelo (throughput)
 
-**Tabela 1: Tempo total para N requisições SELECT (modo `--paralelo`)**
+**Tabela 1: Tempo total para 2000 requisições SELECT (modo `--paralelo`)**
 
 | Threads | Rodada 1 (s) | Rodada 2 (s) | Rodada 3 (s) | Média (s) |
 |---------|--------------|--------------|--------------|-----------|
-| 1       |              |              |              |           |
-| 2       |              |              |              |           |
-| 4       |              |              |              |           |
-| 8       |              |              |              |           |
+| 1       | 0.083        | 0.058        | 0.048        | 0.063     |
+| 2       | 0.066        | 0.058        | 0.058        | 0.061     |
+| 4       | 0.086        | 0.105        | 0.087        | 0.093     |
+| 8       | 0.063        | 0.884*       | 0.048        | 0.332     |
 
-**Tabela 2: Tempo total para N requisições UPDATE (modo `--paralelo`)**
+\**outlier* isolado (ver §5.5); remedicoes da mesma célula: 0.078, 0.056 e
+0.070 s — mediana das 3 rodadas originais: 0.063 s.
+
+**Tabela 2: Tempo total para 2000 requisições UPDATE (modo `--paralelo`)**
 
 | Threads | Rodada 1 (s) | Rodada 2 (s) | Rodada 3 (s) | Média (s) |
 |---------|--------------|--------------|--------------|-----------|
-| 1       |              |              |              |           |
-| 2       |              |              |              |           |
-| 4       |              |              |              |           |
-| 8       |              |              |              |           |
+| 1       | 1.954        | 2.012        | 2.051        | 2.006     |
+| 2       | 2.317        | 2.822        | 2.227        | 2.455     |
+| 4       | 3.117        | 6.827*       | 3.332        | 4.425     |
+| 8       | 3.578        | 3.277        | 3.780        | 3.545     |
+
+\**outlier* isolado (ver §5.5); remedicoes: 3.405 e 3.333 s — mediana das 3
+rodadas originais: 3.332 s.
 
 ### 5.3 Resultados — Modo Sequencial (latência)
 
-**Tabela 3: Tempo total para N requisições SELECT (modo sequencial)**
+**Tabela 3: Tempo total para 2000 requisições SELECT (modo sequencial)**
 
-| Threads | Tempo total (s) |
-|---------|----------------|
-| 1       |                |
-| 4       |                |
+| Threads | Rodada 1 (s) | Rodada 2 (s) | Rodada 3 (s) | Média (s) |
+|---------|--------------|--------------|--------------|-----------|
+| 1       | 0.121        | 0.084        | 0.112        | 0.106     |
+| 4       | 0.101        | 0.092        | 1.496*       | 0.563     |
+
+\**outlier* isolado (ver §5.5); remedicoes: 0.099, 0.067 e 0.089 s — medianas:
+1 thread 0.112 s, 4 threads 0.101 s (diferença < 10%).
+
+**Tabela 4 (apoio): Tempo total para 2000 UPDATEs (modo sequencial)**
+
+| Threads | Rodada 1 (s) | Rodada 2 (s) | Rodada 3 (s) | Média (s) |
+|---------|--------------|--------------|--------------|-----------|
+| 1       | 4.658        | 2.637        | 3.039        | 3.445     |
+| 2       | 3.962        | 2.708        | 2.820        | 3.163     |
+| 4       | 3.214        | 2.442        | 2.620        | 2.759     |
+| 8       | 2.806        | 2.084        | 1.962        | 2.284     |
+
+A rodada 1 (cache frio de disco) é sistematicamente a mais lenta. Remedições
+com cache quente: 1 thread 2.366/2.302 s vs 8 threads 2.344/2.069 s —
+praticamente empatados, como prevê a teoria (§6.1).
 
 ### 5.4 Distribuição de Carga Entre as Threads
 
-O servidor imprime, ao encerrar, quantas requisições cada thread atendeu. Exemplo
-de saída (preencher com valores reais):
+O servidor imprime, ao encerrar, quantas requisições cada thread atendeu
+(valores reais, rodada 3, modo `--paralelo`, 4 threads):
 
 ```
-Requisicoes atendidas por thread:
-  thread 0: ____
-  thread 1: ____
-  thread 2: ____
-  thread 3: ____
-  total: ____ | registros em banco.txt: ____
+Paralelo SELECT, 4 threads (docs/evidencias/servidor_paralelo_SELECT_4_r3.log):
+  thread 0: 488
+  thread 1: 491
+  thread 2: 526
+  thread 3: 495
+  total: 2000 | registros em banco.txt: 3
+
+Paralelo UPDATE, 4 threads (docs/evidencias/servidor_paralelo_UPDATE_4_r3.log):
+  thread 0: 490
+  thread 1: 504
+  thread 2: 526
+  thread 3: 480
+  total: 2000 | registros em banco.txt: 3
 ```
+
+Mesmo no modo sequencial a carga se divide (ex.: `docs/evidencias/servidor_sequencial_SELECT_4_r1.log`:
+500/501/499/500) — cada requisição vai para a primeira thread livre, o que
+confirma que o pool distribui trabalho nos dois modos; o que muda é quantas
+tarefas coexistem na fila.
+
+### 5.5 Nota sobre variação (outliers)
+
+Quatro das 48 medições destoaram isoladamente da célula (paralelo SELECT 8/R2
+0.884 s; paralelo UPDATE 4/R2 6.827 s; sequencial SELECT 2/R3 0.409 s e
+SELECT 4/R3 1.496 s, contra vizinhas de 0.05–0.17 s e 2.0–3.8 s). Cada uma foi
+remedida 2–3 vezes e voltou ao patamar das demais rodadas, sem reproduzir o
+pico. Atribuímos a interferência externa do SO (escalonamento/antivírus),
+não ao sistema — por isso as tabelas mantêm os valores originais e a média
+aritmética simples, com medianas e remedições registradas ao lado.
 
 ---
 
 ## 6. Análise e Discussão
 
-> **[PREENCHER COM OS DADOS REAIS — pontos a abordar:]**
-
 ### 6.1 Sequencial vs Paralelo
 
-No modo sequencial, o servidor recebe uma tarefa por vez — **não há trabalho
-simultâneo** para o pool dividir, e o tempo por requisição é dominado pela
-latência de ida e volta pelo canal. O modo `--paralelo` entrega o lote inteiro de
-uma vez: a fila acumula tarefas e as threads competem por elas — é onde o número
-de threads influencia o tempo total. *(Preencher com os números medidos.)*
+No modo sequencial o cliente faz ping-pong (envia, espera, envia): há no máximo
+**uma tarefa por vez** na fila, de modo que o número de threads não deveria
+influenciar — e é o que os dados quentes confirmam. Em SELECT, as medianas com
+1 e 4 threads diferem menos de 10% (0.112 s vs 0.101 s); em UPDATE com cache
+quente, 1 thread (2.37/2.30 s) empata com 8 threads (2.34/2.07 s). A aparente
+"escala" da Tabela 4 (3.445 s → 2.284 s) vem quase toda da rodada 1 com cache
+frio, que penalizou mais as execuções longas — não de paralelismo real. O tempo
+sequencial é dominado pela **latência de ida e volta pelo canal**, não por falta
+de threads. Já no modo `--paralelo` o lote inteiro é enfileirado de uma vez e
+as threads competem pelas tarefas — só aí o tamanho do pool importa, e cada
+operação reage de um jeito (§6.2).
 
 ### 6.2 Leituras vs Escritas
 
-SELECTs só leem a tabela sob o mesmo mutex das escritas, mas liberam o lock
-rapidamente; UPDATEs reescrevem `banco.txt` dentro da seção crítica, o que
-aumenta o tempo de exclusividade. *(Comparar Tabelas 1 e 2.)*
+A diferença de patamar é de quase duas ordens de grandeza: ~0.06–0.11 s para
+2000 SELECTs contra ~2.0–3.5 s para 2000 UPDATEs. A causa está no código: o
+SELECT segura o `mutex_tabela` apenas para uma busca linear em 3 elementos,
+enquanto o UPDATE reescreve o `banco.txt` **dentro da mesma seção crítica**, a
+cada requisição — 2000 escritas de arquivo serializadas no mutex e no disco.
+Pior: no paralelo, mais threads **pioram** o UPDATE (1 thread 2.01 s →
+8 threads 3.55 s), porque N threads disputando o mesmo lock só adicionam
+contenção e trocas de contexto sem nenhum trabalho sobreposto — o trecho
+serial domina (efeito previsto pela lei de Amdahl). O SELECT paralelo, leve
+demais (~30 µs/req), fica limitado pelo custo do IPC e não escala: 1, 2, 4 e 8
+threads empatam em ~0.06–0.09 s. Moral do experimento: paralelismo acelera o
+que é paralelizável; a escrita serializada no mutex + disco não é.
 
 ### 6.3 Escala de Threads
 
-Espera-se ganho crescente de 1 até ~nº de núcleos da CPU e estabilização (ou
-degradação leve por contenção de mutex) acima disso. *(Confirmar com os dados.)*
+Na máquina de teste (4 núcleos / 8 threads lógicos) não houve ganho ao passar
+de 1–2 para 4–8 threads em nenhum cenário: o SELECT já satura o canal com 1
+thread e o UPDATE serializa no lock. Isso é o resultado correto para esta carga
+— um banco de brinquedo com 3 registros e seção crítica por operação inteira —
+e não uma falha do pool: a distribuição §5.4 mostra as 4 threads recebendo
+~500 requisições cada, ou seja, o mecanismo de divisão funciona; o que falta é
+trabalho paralelizável para dividir. Num cenário com comandos mais pesados
+(simulação de I/O fora do lock, ou travas por registro em vez de trava da
+tabela inteira), esperar-se-ia ganho até ~4 threads e estabilização acima disso
+por contenção de mutex.
 
 ### 6.4 Ordem de Chegada das Respostas
 
@@ -372,8 +445,11 @@ e arquivo, fila de tarefas, canal de respostas) e `sem_t` coordenando
 produtor-consumidor sem consumo de CPU. O encerramento é limpo: um post por
 thread, join e estatísticas por thread. A escolha consciente de uma fila sem
 limite evita um impasse de quatro pontas no modo paralelo — análise de deadlock
-aplicada, não teórica. *(Complementar com os resultados do benchmark ao
-preencher a Seção 5.)*
+aplicada, não teórica. Os experimentos (§5) confirmam o modelo: carga dividida
+de forma equilibrada entre as threads, modo sequencial limitado pela latência
+do canal, UPDATEs serializados pela regravação de `banco.txt` dentro da seção
+crítica (1 thread mais rápida que 8 no paralelo) e SELECTs leves limitados
+pelo custo do IPC.
 
 ---
 

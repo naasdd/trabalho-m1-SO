@@ -27,20 +27,23 @@ Confira que o `banco.txt` está no estado inicial:
 
 ## 2. Script pronto
 
-Tudo já está no arquivo **`docs/benchmark.ps1`**. Ele:
+Tudo já está no arquivo **`docs/benchmark.ps1`** (1 rodada por configuração) e
+em **`docs/benchmark3x.ps1`** (3 rodadas por configuração, com média — foi o
+usado nos números do relatório). Ambos:
 
 1. gera dois lotes com 2000 requisições cada (um de SELECT, um de UPDATE);
 2. roda a matriz completa: {sequencial, paralelo} × {SELECT, UPDATE} × {1, 2, 4, 8} threads;
 3. sobe o servidor antes de cada medição e espera ele encerrar sozinho
    (ele termina quando o cliente desconecta);
-4. imprime cada resultado na tela e no final gera **`resultados.csv`**;
+4. imprime cada resultado na tela e no final gera **`docs/evidencias/resultados.csv`**;
 5. salva o log de cada servidor (com as estatísticas por thread) em arquivos
-   `servidor_<modo>_<op>_<threads>.log`.
+   `docs/evidencias/servidor_<modo>_<op>_<threads>.log`.
 
 Execução (o parâmetro de política é para liberar script no Windows):
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File docs\benchmark.ps1
+powershell -ExecutionPolicy Bypass -File docs\benchmark.ps1    # 1 rodada (rápido)
+powershell -ExecutionPolicy Bypass -File docs\benchmark3x.ps1  # 3 rodadas + média (usado no relatório)
 ```
 
 Duração: poucos minutos (2000 requisições por configuração).
@@ -65,18 +68,18 @@ Measure-Command { .\cliente.exe lote_select.txt --paralelo | Out-Null }
 
 ## 4. Preenchendo o RELATORIO.md
 
-Abra o `resultados.csv` (abre no Excel/Sheets) e copie os valores:
+Abra o `docs/evidencias/resultados.csv` (abre no Excel/Sheets) e copie os valores:
 
 | Tabela do relatório | Linhas do CSV |
 |---|---|
 | Tabela 1 (SELECT paralelo) | modo=paralelo, operacao=SELECT |
 | Tabela 2 (UPDATE paralelo) | modo=paralelo, operacao=UPDATE |
 | Tabela 3 (SELECT sequencial) | modo=sequencial, operacao=SELECT (usar 1 e 4 threads) |
-| Seção 5.4 (distribuição por thread) | arquivos `servidor_paralelo_*_*.log` |
+| Seção 5.4 (distribuição por thread) | arquivos `docs/evidencias/servidor_paralelo_*_*.log` |
 
 ### Gráficos no Google Sheets
 
-1. Importe o `resultados.csv` (ou cole os valores);
+1. Importe o `docs/evidencias/resultados.csv` (ou cole os valores);
 2. Filtre só as linhas `modo=paralelo`;
 3. Selecione as colunas `threads` e `segundos` de SELECT e UPDATE;
 4. Inserir → Gráfico → **Gráfico de linhas**: eixo X = threads, eixo Y = segundos.

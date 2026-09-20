@@ -1,0 +1,15 @@
+Servidor no ar com 8 threads.
+3 registro(s) carregado(s) de banco.txt.
+Esperando o cliente...
+Cliente conectado.
+
+Cliente desconectado. Requisicoes atendidas por thread:
+  thread 0: 194
+  thread 1: 315
+  thread 2: 262
+  thread 3: 173
+  thread 4: 433
+  thread 5: 340
+  thread 6: 205
+  thread 7: 78
+  total: 2000 | registros em banco.txt: 3
