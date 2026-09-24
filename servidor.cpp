@@ -76,8 +76,13 @@ void *trabalhador(void *argumento)
         const std::string texto = executarComando(requisicao.texto);
         std::snprintf(resposta.texto, MAX_TEXTO, "%s", texto.c_str());
 
+        /* O log vai dentro do mesmo mutex para as linhas de threads diferentes
+         * nao se misturarem no terminal. */
         pthread_mutex_lock(&mutex_resposta);
         escreverMensagem(canal_respostas, resposta);
+        std::printf("[thread %d] #%-3d %s -> %s\n",
+                    indice, requisicao.id, requisicao.texto, resposta.texto);
+        std::fflush(stdout);
         pthread_mutex_unlock(&mutex_resposta);
 
         ++atendidas[indice];

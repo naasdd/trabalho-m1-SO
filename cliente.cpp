@@ -98,18 +98,22 @@ int main(int argc, char **argv)
             entrada = argv[i];
     }
 
+    /* Teclado sem --paralelo: conecta antes e envia cada linha assim que ela
+     * e digitada, em vez de esperar o Ctrl+Z. */
+    const bool interativo = entrada == nullptr && !paralelo;
+
     if (entrada != nullptr) {
         std::ifstream arquivo(entrada);
         if (arquivo)
             comandos = lerComandos(arquivo);
         else
             comandos.push_back(entrada);   /* o argumento e o proprio comando */
-    } else {
+    } else if (paralelo) {
         std::printf("Digite os comandos (uma linha cada) e termine com Ctrl+Z e Enter:\n");
         comandos = lerComandos(std::cin);
     }
 
-    if (comandos.empty()) {
+    if (comandos.empty() && !interativo) {
         std::fprintf(stderr, "nenhum comando para enviar\n");
         return 1;
     }
@@ -133,7 +137,20 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    if (paralelo) {
+    if (interativo) {
+        std::printf("Conectado. Digite um comando por linha (Ctrl+Z e Enter para sair):\n");
+        std::string linha;
+        int numero = 0;
+        while (std::getline(std::cin, linha)) {
+            if (!linha.empty() && linha.back() == '\r')
+                linha.pop_back();
+            if (linha.empty() || linha[0] == '#')
+                continue;
+            if (!enviar(canal_requisicoes, ++numero, linha) || !receber(canal_respostas))
+                return 1;
+            std::fflush(stdout);
+        }
+    } else if (paralelo) {
         /* Envia tudo antes de ler: o servidor acumula requisicoes na fila e as
          * threads do pool as processam ao mesmo tempo. */
         for (std::size_t i = 0; i < comandos.size(); ++i) {
